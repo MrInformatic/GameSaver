@@ -23,39 +23,13 @@
  */
 package game.saver;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.io.RandomAccessFile;
 
 /**
  *
  * @author MrInformatic
  */
-public class GameSaver {
-    private GameGraph graph;
-    private ClassMap classMap;
-    private LinkedList<GameMap> gameMaps = new LinkedList<>();
-    private File file;
-    
-    public GameSaver(File file){
-        this.file = file;
-        file.mkdirs();
-        classMap = new ClassMap(new File(file,"class.dat"));
-        graph = new GameGraph(new File(file,"data.dat"), classMap);
-    }
-    
-    public <K extends EntryPoint,T extends GameData> Map<K,T> getnewGameMap(String name,Class<K> k,Class<T> t){
-        GameMap<K,T> gameMap = new GameMap(graph, classMap, new File(file,name+".dat"), k);
-        gameMaps.add(gameMap);
-        return gameMap;
-    }
-    
-    public void flush(){
-        classMap.flush();
-        graph.flush();
-        for(GameMap gameMap : gameMaps){
-            gameMap.flush();
-        }
-    }
+public abstract class EntryPoint {
+    public abstract void read(RandomAccessFile quarry);
+    public abstract void write(RandomAccessFile quarry);
 }

@@ -27,7 +27,7 @@ import java.io.RandomAccessFile;
 
 /**
  *
- * @author philipp
+ * @author MrInformatic
  */
 public abstract class GameData {    
     private int id;

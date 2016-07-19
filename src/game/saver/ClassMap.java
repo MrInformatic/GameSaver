@@ -35,7 +35,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author philipp
+ * @author MrInformatic
  */
 public class ClassMap {
     private int nextid = 0;
@@ -82,7 +82,7 @@ public class ClassMap {
         return idtoclass.get(id);
     }
     
-    public void close(){
+    public void flush(){
         try {
             RandomAccessFile quarry = new RandomAccessFile(file, "rw");
             quarry.setLength(0);

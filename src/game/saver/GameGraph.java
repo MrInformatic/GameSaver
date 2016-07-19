@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author philipp
+ * @author MrInformatic
  */
 public class GameGraph {
     private LinkedList<GameData> gameData = new LinkedList<>();
@@ -110,7 +110,7 @@ public class GameGraph {
         }catch(Exception e){}
     }
     
-    public void close(){
+    public void flush(){
         try {
             RandomAccessFile quarry = new RandomAccessFile(file, "rw");
             quarry.setLength(0);

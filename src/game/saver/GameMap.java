@@ -24,38 +24,50 @@
 package game.saver;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author MrInformatic
  */
-public class GameSaver {
+public class GameMap<K extends EntryPoint,T extends GameData> extends HashMap<K,T>{
+    private HashMap<K,T> values = new HashMap<>();
     private GameGraph graph;
     private ClassMap classMap;
-    private LinkedList<GameMap> gameMaps = new LinkedList<>();
     private File file;
     
-    public GameSaver(File file){
+    public GameMap(GameGraph graph,ClassMap classMap,File file,Class<K> c){
+        super();
         this.file = file;
-        file.mkdirs();
-        classMap = new ClassMap(new File(file,"class.dat"));
-        graph = new GameGraph(new File(file,"data.dat"), classMap);
-    }
-    
-    public <K extends EntryPoint,T extends GameData> Map<K,T> getnewGameMap(String name,Class<K> k,Class<T> t){
-        GameMap<K,T> gameMap = new GameMap(graph, classMap, new File(file,name+".dat"), k);
-        gameMaps.add(gameMap);
-        return gameMap;
+        this.classMap = classMap;
+        this.graph = graph;
+        try {
+            RandomAccessFile quarry = new RandomAccessFile(file, "rw");
+            while(true){
+                K key = c.newInstance();
+                key.read(quarry);
+                values.put(key,(T)graph.get(quarry.readInt()));
+            }
+        } catch (Exception ex) {
+            
+        }        
     }
     
     public void flush(){
-        classMap.flush();
-        graph.flush();
-        for(GameMap gameMap : gameMaps){
-            gameMap.flush();
+        try {
+            RandomAccessFile quarry = new RandomAccessFile(file, "rw");
+            for(Map.Entry<K,T> value : values.entrySet()){
+                value.getKey().write(quarry);
+                quarry.writeInt(value.getValue().getId());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }
