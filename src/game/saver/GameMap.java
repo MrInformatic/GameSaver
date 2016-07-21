@@ -26,6 +26,7 @@ package game.saver;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +37,7 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameMap<K extends Seriable,T extends GameData> extends HashMap<K,T>{
+public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>{
     private HashMap<K,T> values = new HashMap<>();
     private GameGraph graph;
     private ClassMap classMap;
@@ -69,5 +70,74 @@ public class GameMap<K extends Seriable,T extends GameData> extends HashMap<K,T>
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public int size() {
+        return values.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return values.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return values.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return values.containsValue(value);
+    }
+
+    @Override
+    public T get(Object key) {
+        return values.get(key);
+    }
+
+    @Override
+    public T put(K key, T value) {
+        graph.add(value);
+        return values.put(key, value);
+    }
+
+    @Override
+    public T remove(Object key) {
+        T type = values.remove(key);
+        graph.remove(type.getId());
+        return type;
+    }
+
+    @Override
+    public void putAll(Map<? extends K, ? extends T> m) {
+        for(T type : m.values()){
+            graph.add(type);
+        }
+        values.putAll(m);
+    }
+
+    @Override
+    public void clear() {
+        for(T type : values()){
+            graph.remove(type.getId());
+        }
+        values.clear();
+    }
+
+    @Override
+    public Set<K> keySet() {
+        return values.keySet();
+    }
+
+    @Override
+    public Collection<T> values() {
+        return values.values();
+    }
+
+    @Override
+    public Set<Entry<K, T>> entrySet() {
+        return values.entrySet();
     }
 }
