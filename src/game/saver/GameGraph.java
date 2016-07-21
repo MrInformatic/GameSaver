@@ -50,9 +50,9 @@ public class GameGraph implements Graphable<GameData>{
     public GameGraph(File file,ClassMap classMap) {
         this.file = file;
         this.classMap = classMap;
-        RandomAccessFile quarry = null;
+        Quarry quarry = null;
         try {
-            quarry = new RandomAccessFile(file, "rw");
+            quarry = new Quarry(file, "rw");
             idDispenser.read(quarry);
             int length = quarry.readInt();
             GameData[] gameData1 = new GameData[idDispenser.getlargestId()];
@@ -109,7 +109,7 @@ public class GameGraph implements Graphable<GameData>{
     
     public void flush(){
         try {
-            RandomAccessFile quarry = new RandomAccessFile(file, "rw");
+            Quarry quarry = new Quarry(file, "rw");
             quarry.setLength(0);
             idDispenser.write(quarry);
             quarry.writeInt(gameData.size());
@@ -154,7 +154,7 @@ public class GameGraph implements Graphable<GameData>{
         }
 
         @Override
-        public void write(RandomAccessFile quarry) {
+        public void write(Quarry quarry) {
             try {
                 quarry.writeInt(nextId);
                 quarry.writeInt(ids.size());
@@ -167,7 +167,7 @@ public class GameGraph implements Graphable<GameData>{
         }
 
         @Override
-        public void read(RandomAccessFile quarry) {
+        public void read(Quarry quarry) {
             try {
                 nextId = quarry.readInt();
                 int length = quarry.readInt();

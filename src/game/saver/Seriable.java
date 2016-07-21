@@ -30,6 +30,6 @@ import java.io.RandomAccessFile;
  * @author MrInformatic
  */
 public interface Seriable {
-    public void write(RandomAccessFile quarry);
-    public void read(RandomAccessFile quarry);
+    public void write(Quarry quarry);
+    public void read(Quarry quarry);
 }

@@ -26,48 +26,26 @@ package game.saver;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author MrInformatic
  */
-public class GameMap<K extends Seriable,T extends GameData> extends HashMap<K,T>{
-    private HashMap<K,T> values = new HashMap<>();
-    private GameGraph graph;
-    private ClassMap classMap;
-    private File file;
-    
-    public GameMap(GameGraph graph,ClassMap classMap,File file,Class<K> c){
-        super();
-        this.file = file;
-        this.classMap = classMap;
-        this.graph = graph;
-        try {
-            Quarry quarry = new Quarry(file, "rw");
-            while(true){
-                K key = c.newInstance();
-                key.read(quarry);
-                values.put(key,(T)graph.get(quarry.readInt()));
-            }
-        } catch (Exception ex) {
-            
-        }        
+public class Quarry extends RandomAccessFile{
+
+    public Quarry(String name, String mode) throws FileNotFoundException {
+        super(name, mode);
     }
     
-    public void flush(){
-        try {
-            Quarry quarry = new Quarry(file, "rw");
-            for(Map.Entry<K,T> value : values.entrySet()){
-                value.getKey().write(quarry);
-                quarry.writeInt(value.getValue().getId());
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    public Quarry(File file, String mode) throws FileNotFoundException {
+        super(file, mode);
+    }
+    
+    public void write(Seriable seriable){
+        seriable.write(this);
+    }
+    
+    public void read(Seriable seriable){
+        seriable.read(this);
     }
 }
