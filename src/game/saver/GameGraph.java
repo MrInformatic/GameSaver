@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -40,7 +41,7 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameGraph {
+public class GameGraph implements Graphable<GameData>{
     private HashMap<Integer,GameData> gameData = new HashMap<>();
     private ClassMap classMap;
     private File file;
@@ -54,23 +55,17 @@ public class GameGraph {
             quarry = new RandomAccessFile(file, "rw");
             idDispenser.read(quarry);
             int length = quarry.readInt();
+            GameData[] gameData1 = new GameData[idDispenser.getlargestId()];
             for(int i=0;i<length;i++){
                 int id = quarry.readInt();
                 Class c = classMap.getClassbyId(quarry.readInt());
-                GameData gameData1 = (GameData)c.newInstance();
-                gameData1.read(quarry);
-                gameData.put(id,gameData1);
+                GameData gameData2 = (GameData)c.newInstance();
+                gameData2.read(quarry);
+                gameData.put(id,gameData2);
+                gameData1[id] = gameData2;
             }
-            GameData[] gameData1 = gameData.values().toArray(new GameData[gameData.size()]);
             for(int i=0;i<length;i++){
-                int id = quarry.readInt();
-                int length2 = quarry.readInt();
-                GameData[] gameData2 = new GameData[length2];
-                for(int n=0;n<length2;n++){
-                    int t = quarry.readInt();
-                    gameData2[n]= gameData1[t];
-                }
-                gameData1[id].setChilds(gameData2);
+                gameData1[quarry.readInt()].readChilds(quarry,gameData1);
             }
             quarry.close();
         } catch (Exception ex) {
@@ -85,28 +80,23 @@ public class GameGraph {
         }
     }
     
+    @Override
     public GameData get(int i){
         return gameData.get(i);
     }
     
+    @Override
     public void add(GameData type){
+        type.setGameGraph(this);
         if(type.getId()<0){
             int id = idDispenser.next();
             type.setId(id);
             gameData.put(id,type);
-            try{
-                for(GameData gameData1 : type.getChilds()){
-                    add(gameData1);
-                }
-            }catch(Exception e){}
+            
         }
     }
     
-    public void set(int i,GameData type){
-        type.setId(i);
-        gameData.put(i, type);
-    }
-    
+    @Override
     public void remove(int i){
         GameData gameData1 = gameData.remove(i);
         idDispenser.add(i);
@@ -129,14 +119,7 @@ public class GameGraph {
                 gameData1.getValue().write(quarry);
             }
             for(GameData gameData1 : gameData.values()){
-                GameData[] gameData3 = gameData1.getChilds();
-                if(gameData3!=null&&gameData3.length>0){
-                    quarry.writeInt(gameData1.getId());
-                    quarry.writeInt(gameData3.length);
-                    for(GameData gameData2 : gameData3){
-                        quarry.writeInt(gameData2.getId());
-                    }
-                }
+                gameData1.writeChilds(quarry);
             }
             quarry.close();
         } catch (Exception ex) {
@@ -147,6 +130,10 @@ public class GameGraph {
     public class IdDispenser implements Iterator<Integer>,Seriable{
         private int nextId = 0;
         private LinkedList<Integer> ids = new LinkedList<>();
+        
+        public int getlargestId(){
+            return nextId;
+        }
 
         @Override
         public boolean hasNext() {
