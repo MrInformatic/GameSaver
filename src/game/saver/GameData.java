@@ -29,7 +29,7 @@ import java.io.RandomAccessFile;
  *
  * @author MrInformatic
  */
-public abstract class GameData {    
+public abstract class GameData implements Seriable{    
     private int id;
     
     public int getId(){
@@ -39,9 +39,6 @@ public abstract class GameData {
     public void setId(int id){
         this.id = id;
     }
-    
-    public abstract void read(RandomAccessFile quarry);
-    public abstract void write(RandomAccessFile quarry);
     
     public abstract GameData[] getChilds();
     public abstract void setChilds(GameData[] data);

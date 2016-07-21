@@ -29,7 +29,7 @@ import java.io.RandomAccessFile;
  *
  * @author MrInformatic
  */
-public abstract class EntryPoint {
-    public abstract void read(RandomAccessFile quarry);
-    public abstract void write(RandomAccessFile quarry);
+public interface Seriable {
+    public void write(RandomAccessFile quarry);
+    public void read(RandomAccessFile quarry);
 }

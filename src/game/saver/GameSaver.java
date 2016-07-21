@@ -45,7 +45,7 @@ public class GameSaver {
         graph = new GameGraph(new File(file,"data.dat"), classMap);
     }
     
-    public <K extends EntryPoint,T extends GameData> Map<K,T> getnewGameMap(String name,Class<K> k,Class<T> t){
+    public <K extends Seriable,T extends GameData> Map<K,T> getnewGameMap(String name,Class<K> k,Class<T> t){
         GameMap<K,T> gameMap = new GameMap(graph, classMap, new File(file,name+".dat"), k);
         gameMaps.add(gameMap);
         return gameMap;

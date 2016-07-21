@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameMap<K extends EntryPoint,T extends GameData> extends HashMap<K,T>{
+public class GameMap<K extends Seriable,T extends GameData> extends HashMap<K,T>{
     private HashMap<K,T> values = new HashMap<>();
     private GameGraph graph;
     private ClassMap classMap;

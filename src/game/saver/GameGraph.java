@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
@@ -40,9 +41,10 @@ import java.util.logging.Logger;
  * @author MrInformatic
  */
 public class GameGraph {
-    private LinkedList<GameData> gameData = new LinkedList<>();
+    private HashMap<Integer,GameData> gameData = new HashMap<>();
     private ClassMap classMap;
     private File file;
+    private IdDispenser idDispenser = new IdDispenser();
 
     public GameGraph(File file,ClassMap classMap) {
         this.file = file;
@@ -50,15 +52,16 @@ public class GameGraph {
         RandomAccessFile quarry = null;
         try {
             quarry = new RandomAccessFile(file, "rw");
+            idDispenser.read(quarry);
             int length = quarry.readInt();
             for(int i=0;i<length;i++){
                 int id = quarry.readInt();
                 Class c = classMap.getClassbyId(quarry.readInt());
                 GameData gameData1 = (GameData)c.newInstance();
                 gameData1.read(quarry);
-                gameData.add(id,gameData1);
+                gameData.put(id,gameData1);
             }
-            GameData[] gameData1 = gameData.toArray(new GameData[gameData.size()]);
+            GameData[] gameData1 = gameData.values().toArray(new GameData[gameData.size()]);
             for(int i=0;i<length;i++){
                 int id = quarry.readInt();
                 int length2 = quarry.readInt();
@@ -87,22 +90,26 @@ public class GameGraph {
     }
     
     public void add(GameData type){
-        type.setId(gameData.size());
-        gameData.add(type);
-        try{
-            for(GameData gameData1 : type.getChilds()){
-                add(gameData1);
-            }
-        }catch(Exception e){}
+        if(type.getId()<0){
+            int id = idDispenser.next();
+            type.setId(id);
+            gameData.put(id,type);
+            try{
+                for(GameData gameData1 : type.getChilds()){
+                    add(gameData1);
+                }
+            }catch(Exception e){}
+        }
     }
     
     public void set(int i,GameData type){
         type.setId(i);
-        gameData.set(i, type);
+        gameData.put(i, type);
     }
     
     public void remove(int i){
         GameData gameData1 = gameData.remove(i);
+        idDispenser.add(i);
         try{
             for(GameData gameData2 : gameData1.getChilds()){
                 remove(gameData2.getId());
@@ -114,15 +121,14 @@ public class GameGraph {
         try {
             RandomAccessFile quarry = new RandomAccessFile(file, "rw");
             quarry.setLength(0);
+            idDispenser.write(quarry);
             quarry.writeInt(gameData.size());
-            int i=0;
-            for(GameData gameData1 : gameData){
-                quarry.writeInt(i);
-                quarry.writeInt(classMap.getClassId(gameData1.getClass()));
-                gameData1.write(quarry);
-                i++;
+            for(Map.Entry<Integer,GameData> gameData1 : gameData.entrySet()){
+                quarry.writeInt(gameData1.getKey());
+                quarry.writeInt(classMap.getClassId(gameData1.getValue().getClass()));
+                gameData1.getValue().write(quarry);
             }
-            for(GameData gameData1 : gameData){
+            for(GameData gameData1 : gameData.values()){
                 GameData[] gameData3 = gameData1.getChilds();
                 if(gameData3!=null&&gameData3.length>0){
                     quarry.writeInt(gameData1.getId());
@@ -135,6 +141,55 @@ public class GameGraph {
             quarry.close();
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+    
+    public class IdDispenser implements Iterator<Integer>,Seriable{
+        private int nextId = 0;
+        private LinkedList<Integer> ids = new LinkedList<>();
+
+        @Override
+        public boolean hasNext() {
+            return true;
+        }
+
+        @Override
+        public Integer next() {
+            if(ids.isEmpty()){
+                return nextId++;
+            }else{
+                return ids.poll();
+            }
+        }
+        
+        public void add(int id){
+            ids.add(id);
+        }
+
+        @Override
+        public void write(RandomAccessFile quarry) {
+            try {
+                quarry.writeInt(nextId);
+                quarry.writeInt(ids.size());
+                for(Integer i : ids){
+                    quarry.writeInt(i);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        @Override
+        public void read(RandomAccessFile quarry) {
+            try {
+                nextId = quarry.readInt();
+                int length = quarry.readInt();
+                for(int i=0;i<length;i++){
+                    ids.add(quarry.readInt());
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }
