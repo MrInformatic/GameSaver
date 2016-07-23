@@ -52,8 +52,8 @@ public class GameSaver {
     }
     
     public void flush(){
-        classMap.flush();
         graph.flush();
+        classMap.flush();
         for(GameMap gameMap : gameMaps){
             gameMap.flush();
         }

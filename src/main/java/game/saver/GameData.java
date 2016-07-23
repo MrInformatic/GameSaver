@@ -37,7 +37,7 @@ import java.util.logging.Logger;
  * @author MrInformatic
  */
 public abstract class GameData implements Seriable{    
-    private int id;
+    private int id = -1;
     private ArrayList<GameData> childs;
     private Graphable<GameData> graph;
     
