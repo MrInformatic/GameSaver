@@ -21,15 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package game.saver;
-
-import java.io.RandomAccessFile;
+package game.saver.interfaces;
 
 /**
  *
  * @author MrInformatic
  */
-public interface Seriable {
-    public void write(Quarry quarry);
-    public void read(Quarry quarry);
+public interface Graphable<T> {
+    public void add(T type);
+    
+    public T get(int i);
+    
+    public void remove(int i);
 }

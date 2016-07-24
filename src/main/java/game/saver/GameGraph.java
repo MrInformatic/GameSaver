@@ -23,6 +23,9 @@
  */
 package game.saver;
 
+import game.saver.interfaces.Flushable;
+import game.saver.interfaces.Graphable;
+import game.saver.interfaces.Seriable;
 import game.saver.GameData;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +44,7 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameGraph implements Graphable<GameData>{
+public class GameGraph implements Graphable<GameData>,Flushable{
     private HashMap<Integer,GameData> gameData = new HashMap<>();
     private ClassMap classMap;
     private File file;
@@ -107,6 +110,7 @@ public class GameGraph implements Graphable<GameData>{
         }catch(Exception e){}
     }
     
+    @Override
     public void flush(){
         try {
             Quarry quarry = new Quarry(file, "rw");

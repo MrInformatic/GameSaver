@@ -21,8 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package game.saver;
+package game.saver.gamemaps;
 
+import game.saver.ClassMap;
+import game.saver.interfaces.Flushable;
+import game.saver.GameData;
+import game.saver.GameGraph;
+import game.saver.Quarry;
+import game.saver.interfaces.Seriable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
@@ -37,7 +43,7 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>{
+public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>,Flushable{
     private HashMap<K,T> values = new HashMap<>();
     private GameGraph graph;
     private ClassMap classMap;
@@ -60,6 +66,7 @@ public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>{
         }        
     }
     
+    @Override
     public void flush(){
         try {
             Quarry quarry = new Quarry(file, "rw");

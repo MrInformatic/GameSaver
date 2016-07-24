@@ -23,6 +23,8 @@
  */
 package game.saver;
 
+import game.saver.interfaces.Graphable;
+import game.saver.interfaces.Seriable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;

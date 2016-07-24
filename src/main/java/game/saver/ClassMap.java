@@ -23,6 +23,7 @@
  */
 package game.saver;
 
+import game.saver.interfaces.Flushable;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,7 +38,7 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class ClassMap {
+public class ClassMap implements Flushable{
     private int nextid = 0;
     private HashMap<Integer,Class> idtoclass = new HashMap<>();
     private HashMap<Class,Integer> classtoid = new HashMap<>();
@@ -82,6 +83,7 @@ public class ClassMap {
         return idtoclass.get(id);
     }
     
+    @Override
     public void flush(){
         try {
             RandomAccessFile quarry = new RandomAccessFile(file, "rw");

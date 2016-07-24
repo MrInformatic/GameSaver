@@ -23,6 +23,7 @@
  */
 package game.saver;
 
+import game.saver.interfaces.Seriable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
