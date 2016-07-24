@@ -26,6 +26,8 @@ package game.saver;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -45,7 +47,14 @@ public class Quarry extends RandomAccessFile{
         seriable.write(this);
     }
     
-    public void read(Seriable seriable){
-        seriable.read(this);
+    public <T extends Seriable> T read(Class<T> c){
+        try {
+            T type = c.newInstance();
+            type.read(this);
+            return type;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 }
