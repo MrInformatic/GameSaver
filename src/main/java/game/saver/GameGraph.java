@@ -46,6 +46,7 @@ import java.util.logging.Logger;
  */
 public class GameGraph implements Graphable<GameData>,Flushable{
     private HashMap<Integer,GameData> gameData = new HashMap<>();
+    private GameData[] gameDataArray;
     private ClassMap classMap;
     private File file;
     private IdDispenser idDispenser = new IdDispenser();
@@ -54,42 +55,39 @@ public class GameGraph implements Graphable<GameData>,Flushable{
         this.file = file;
         this.classMap = classMap;
         if(file.exists()){
-            Quarry quarry = null;
             try {
-                quarry = new Quarry(file, "rw");
+                Quarry quarry = new Quarry(file, "rw");
                 idDispenser.read(quarry);
                 int length = quarry.readInt();
-                GameData[] gameData1 = new GameData[idDispenser.getlargestId()];
+                gameDataArray = new GameData[idDispenser.getlargestId()];
                 for(int i=0;i<length;i++){
                     int id = quarry.readInt();
                     GameData gameData2 = (GameData)classMap.getClassbyId(quarry.readInt()).newInstance();
                     gameData2.setId(id);
                     gameData2.read(quarry);
-                    gameData.put(id,gameData2);
-                    gameData1[id] = gameData2;
+                    gameDataArray[id] = gameData2;
                 }
                 for(int i=0;i<length;i++){
-                    if(gameData1[quarry.readInt()].readChilds(quarry,gameData1)){
-                        break;
+                    if(gameDataArray[quarry.readInt()]!=null){
+                        if(gameDataArray[quarry.readInt()].readChilds(quarry,gameDataArray)){
+                            break;
+                        }
                     }
                 }
                 quarry.close();
             } catch (Exception ex) {
-                if(quarry!=null){
-                    try {
-                        quarry.close();
-                    } catch (IOException ex1) {
-                        ex1.printStackTrace();
-                    }
-                }
-                //ex.printStackTrace();
+                ex.printStackTrace();
             }
         }
     }
     
     @Override
     public GameData get(int i){
-        return gameData.get(i);
+        if(i<gameDataArray.length){
+            return gameDataArray[i];
+        }else{
+            return gameData.get(i);
+        }
     }
     
     @Override
@@ -98,14 +96,24 @@ public class GameGraph implements Graphable<GameData>,Flushable{
         if(type.getId()<0){
             int id = idDispenser.next();
             type.setId(id);
-            gameData.put(id,type);
+            if(id<gameDataArray.length){
+                gameDataArray[id] = type;
+            }else{
+                gameData.put(id,type);
+            }
             
         }
     }
     
     @Override
     public void remove(int i){
-        GameData gameData1 = gameData.remove(i);
+        GameData gameData1;
+        if(i<gameDataArray.length){
+            gameData1 = gameDataArray[i];
+            gameDataArray[i] = null;
+        }else{
+            gameData1 = gameData.remove(i);
+        }
         idDispenser.add(i);
         try{
             for(GameData gameData2 : gameData1.getChilds()){
@@ -120,11 +128,25 @@ public class GameGraph implements Graphable<GameData>,Flushable{
             Quarry quarry = new Quarry(file, "rw");
             quarry.setLength(0);
             idDispenser.write(quarry);
-            quarry.writeInt(gameData.size());
+            quarry.writeInt(gameData.size()+gameDataArray.length);
+            int i=0;
+            for(GameData gameData1 : gameDataArray){
+                if(gameData1!=null){
+                    quarry.writeInt(i);
+                    quarry.writeInt(classMap.getClassId(gameData1.getClass()));
+                    gameData1.write(quarry);
+                }
+                i++;
+            }
             for(Map.Entry<Integer,GameData> gameData1 : gameData.entrySet()){
-                quarry.writeInt(gameData1.getKey());
-                quarry.writeInt(classMap.getClassId(gameData1.getValue().getClass()));
-                gameData1.getValue().write(quarry);
+                if(gameData1!=null){
+                    quarry.writeInt(gameData1.getKey());
+                    quarry.writeInt(classMap.getClassId(gameData1.getValue().getClass()));
+                    gameData1.getValue().write(quarry);
+                }
+            }
+            for(GameData gameData1 : gameDataArray){
+                gameData1.writeChilds(quarry);
             }
             for(GameData gameData1 : gameData.values()){
                 gameData1.writeChilds(quarry);
