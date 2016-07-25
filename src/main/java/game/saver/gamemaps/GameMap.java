@@ -54,22 +54,26 @@ public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>,
         this.file = file;
         this.classMap = classMap;
         this.graph = graph;
-        try {
-            Quarry quarry = new Quarry(file, "rw");
-            while(true){
-                K key = c.newInstance();
-                key.read(quarry);
-                values.put(key,(T)graph.get(quarry.readInt()));
-            }
-        } catch (Exception ex) {
-            
-        }        
+        if(file.exists()){
+            try {
+                Quarry quarry = new Quarry(file, "rw");
+                int length = quarry.readInt();
+                for(int i=0;i<length;i++){
+                    K key = c.newInstance();
+                    key.read(quarry);
+                    values.put(key,(T)graph.get(quarry.readInt()));
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }   
+        }
     }
     
     @Override
     public void flush(){
         try {
             Quarry quarry = new Quarry(file, "rw");
+            quarry.writeInt(values.size());
             for(Map.Entry<K,T> value : values.entrySet()){
                 value.getKey().write(quarry);
                 quarry.writeInt(value.getValue().getId());

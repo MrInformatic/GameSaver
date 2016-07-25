@@ -53,33 +53,37 @@ public class GameGraph implements Graphable<GameData>,Flushable{
     public GameGraph(File file,ClassMap classMap) {
         this.file = file;
         this.classMap = classMap;
-        Quarry quarry = null;
-        try {
-            quarry = new Quarry(file, "rw");
-            idDispenser.read(quarry);
-            int length = quarry.readInt();
-            GameData[] gameData1 = new GameData[idDispenser.getlargestId()];
-            for(int i=0;i<length;i++){
-                int id = quarry.readInt();
-                Class c = classMap.getClassbyId(quarry.readInt());
-                GameData gameData2 = (GameData)c.newInstance();
-                gameData2.read(quarry);
-                gameData.put(id,gameData2);
-                gameData1[id] = gameData2;
-            }
-            for(int i=0;i<length;i++){
-                gameData1[quarry.readInt()].readChilds(quarry,gameData1);
-            }
-            quarry.close();
-        } catch (Exception ex) {
-            if(quarry!=null){
-                try {
-                    quarry.close();
-                } catch (IOException ex1) {
-                    ex1.printStackTrace();
+        if(file.exists()){
+            Quarry quarry = null;
+            try {
+                quarry = new Quarry(file, "rw");
+                idDispenser.read(quarry);
+                int length = quarry.readInt();
+                GameData[] gameData1 = new GameData[idDispenser.getlargestId()];
+                for(int i=0;i<length;i++){
+                    int id = quarry.readInt();
+                    GameData gameData2 = (GameData)classMap.getClassbyId(quarry.readInt()).newInstance();
+                    gameData2.setId(id);
+                    gameData2.read(quarry);
+                    gameData.put(id,gameData2);
+                    gameData1[id] = gameData2;
                 }
+                for(int i=0;i<length;i++){
+                    if(gameData1[quarry.readInt()].readChilds(quarry,gameData1)){
+                        break;
+                    }
+                }
+                quarry.close();
+            } catch (Exception ex) {
+                if(quarry!=null){
+                    try {
+                        quarry.close();
+                    } catch (IOException ex1) {
+                        ex1.printStackTrace();
+                    }
+                }
+                //ex.printStackTrace();
             }
-            //ex.printStackTrace();
         }
     }
     
@@ -125,6 +129,7 @@ public class GameGraph implements Graphable<GameData>,Flushable{
             for(GameData gameData1 : gameData.values()){
                 gameData1.writeChilds(quarry);
             }
+            quarry.writeInt(-1);
             quarry.close();
         } catch (Exception ex) {
             ex.printStackTrace();

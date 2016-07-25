@@ -31,19 +31,23 @@ public class GameFloatMap<T extends GameData> implements Map<Float,T>,Flushable{
         this.file = file;
         this.classMap = classMap;
         this.graph = graph;
-        try {
-            Quarry quarry = new Quarry(file, "rw");
-            while(true){
-                values.put(quarry.readFloat(),(T)graph.get(quarry.readInt()));
+        if(file.exists()){
+            try {
+                Quarry quarry = new Quarry(file, "rw");
+                int lenght = quarry.readInt();
+                for(int i=0;i<lenght;i++){
+                    values.put(quarry.readFloat(),(T)graph.get(quarry.readInt()));
+                }
+            } catch (Exception ex) {
+
             }
-        } catch (Exception ex) {
-            
-        }        
+        }
     }
     
     public void flush(){
         try {
             Quarry quarry = new Quarry(file, "rw");
+            quarry.writeInt(values.size());
             for(Map.Entry<Float,T> value : values.entrySet()){
                 quarry.writeFloat(value.getKey());
                 quarry.writeInt(value.getValue().getId());

@@ -59,15 +59,22 @@ public abstract class GameData implements Seriable{
         this.id = id;
     }
     
-    public void readChilds(RandomAccessFile quarry,GameData[] data){
+    public boolean readChilds(RandomAccessFile quarry,GameData[] data){
         try {
-            childs = new ArrayList<>(quarry.readInt());
-            for(int i=0;i<childs.size();i++){
-                childs.add(data[quarry.readInt()]);
+            int length = quarry.readInt();
+            if(length==-1){
+                return true;
+            }else{
+                childs = new ArrayList<>(length);
+                for(int i=0;i<length;i++){
+                    childs.add(data[quarry.readInt()]);
+                }
+                return false;
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        return false;
     }
     
     public void writeChilds(RandomAccessFile quarry){

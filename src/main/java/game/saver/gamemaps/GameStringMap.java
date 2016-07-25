@@ -31,21 +31,25 @@ public class GameStringMap<T extends GameData> implements Map<String,T>,Flushabl
         this.file = file;
         this.classMap = classMap;
         this.graph = graph;
-        try {
-            Quarry quarry = new Quarry(file, "rw");
-            while(true){
-                byte[] buffer = new byte[quarry.readInt()];
-                quarry.read(buffer);
-                values.put(new String(buffer),(T)graph.get(quarry.readInt()));
-            }
-        } catch (Exception ex) {
-            
-        }        
+        if(file.exists()){
+            try {
+                Quarry quarry = new Quarry(file, "rw");
+                int lenght = quarry.readInt();
+                for(int i=0;i<lenght;i++){
+                    byte[] buffer = new byte[quarry.readInt()];
+                    quarry.read(buffer);
+                    values.put(new String(buffer),(T)graph.get(quarry.readInt()));
+                }
+            } catch (Exception ex) {
+
+            } 
+        }
     }
     
     public void flush(){
         try {
             Quarry quarry = new Quarry(file, "rw");
+            quarry.writeInt(values.size());
             for(Map.Entry<String,T> value : values.entrySet()){
                 quarry.writeInt(value.getKey().length());
                 quarry.write(value.getKey().getBytes());

@@ -47,27 +47,29 @@ public class ClassMap implements Flushable{
     public ClassMap(File file){
         this.file = file;
         RandomAccessFile quarry = null;
-        try {
-            quarry = new RandomAccessFile(file, "rw");
-            nextid = quarry.readInt();
-            while(true){
-                int id = quarry.readInt();
-                byte[] buffer = new byte[quarry.readInt()];
-                quarry.read(buffer);
-                Class c = Class.forName(new String(buffer));
-                idtoclass.put(id,c);
-                classtoid.put(c,id);
-            }
-        } catch (Exception ex) {
-            if(quarry!=null){
-                try {
-                    quarry.close();
-                } catch (IOException ex1) {
-                    ex1.printStackTrace();
+        if(file.exists()){
+            try {
+                quarry = new RandomAccessFile(file, "rw");
+                nextid = quarry.readInt();
+                int length = quarry.readInt();
+                for(int i=0;i<length;i++){
+                    int id = quarry.readInt();
+                    byte[] buffer = new byte[quarry.readInt()];
+                    quarry.read(buffer);
+                    Class c = Class.forName(new String(buffer));
+                    idtoclass.put(id,c);
+                    classtoid.put(c,id);
+                }
+            } catch (Exception ex) {
+                if(quarry!=null){
+                    try {
+                        quarry.close();
+                    } catch (IOException ex1) {
+                        ex1.printStackTrace();
+                    }
                 }
             }
         }
-        
     }
     
     public int getClassId(Class c){
@@ -89,6 +91,7 @@ public class ClassMap implements Flushable{
             RandomAccessFile quarry = new RandomAccessFile(file, "rw");
             quarry.setLength(0);
             quarry.writeInt(nextid);
+            quarry.writeInt(idtoclass.size());
             int i=0;
             for(Map.Entry<Integer,Class> classes : idtoclass.entrySet()){
                 quarry.writeInt(classes.getKey());

@@ -31,19 +31,23 @@ public class GameDoubleMap<T extends GameData> implements Map<Double,T>,Flushabl
         this.file = file;
         this.classMap = classMap;
         this.graph = graph;
-        try {
-            Quarry quarry = new Quarry(file, "rw");
-            while(true){
-                values.put(quarry.readDouble(),(T)graph.get(quarry.readInt()));
+        if(file.exists()){
+            try {
+                Quarry quarry = new Quarry(file, "rw");
+                int lenght = quarry.readInt();
+                for(int i=0;i<lenght;i++){
+                    values.put(quarry.readDouble(),(T)graph.get(quarry.readInt()));
+                }
+            } catch (Exception ex) {
+
             }
-        } catch (Exception ex) {
-            
-        }        
+        }
     }
     
     public void flush(){
         try {
             Quarry quarry = new Quarry(file, "rw");
+            quarry.writeInt(values.size());
             for(Map.Entry<Double,T> value : values.entrySet()){
                 quarry.writeDouble(value.getKey());
                 quarry.writeInt(value.getValue().getId());
