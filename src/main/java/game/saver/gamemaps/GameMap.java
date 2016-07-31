@@ -24,13 +24,15 @@
 package game.saver.gamemaps;
 
 import game.saver.ClassMap;
-import game.saver.interfaces.Flushable;
 import game.saver.GameData;
 import game.saver.GameGraph;
 import game.saver.Quarry;
 import game.saver.interfaces.Seriable;
+import game.saver.interfaces.Writeable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,36 +45,32 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>,Flushable{
+public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>,Writeable{
     private HashMap<K,T> values = new HashMap<>();
     private GameGraph graph;
-    private ClassMap classMap;
-    private File file;
     
-    public GameMap(GameGraph graph,ClassMap classMap,File file,Class<K> c){
+    public GameMap(GameGraph graph,InputStream stream,Class<K> c){
         super();
-        this.file = file;
-        this.classMap = classMap;
         this.graph = graph;
-        if(file.exists()){
-            try {
-                Quarry quarry = new Quarry(file);
+        try {
+            if(stream.available()>0){
+                Quarry quarry = new Quarry(stream);
                 int length = quarry.readInt();
                 for(int i=0;i<length;i++){
                     K key = c.newInstance();
                     key.read(quarry);
                     values.put(key,(T)graph.get(quarry.readInt()));
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }   
+            }
+        } catch (Exception ex) {
+
         }
     }
     
     @Override
-    public void flush(){
+    public void write(OutputStream stream){
         try {
-            Quarry quarry = new Quarry(file);
+            Quarry quarry = new Quarry(stream);
             quarry.writeInt(values.size());
             for(Map.Entry<K,T> value : values.entrySet()){
                 value.getKey().write(quarry);

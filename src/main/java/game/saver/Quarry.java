@@ -41,146 +41,194 @@ import java.util.logging.Logger;
  * @author MrInformatic
  */
 public class Quarry{
-    public InputStream inputStream;
-    public OutputStream outputStream;
+    private InputStream inputStream;
+    private OutputStream outputStream;
     
-    public Quarry(String file) throws FileNotFoundException {
-        this(new File(file));
+    public Quarry(InputStream inputStream,OutputStream outputStream){
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
     }
     
-    public Quarry(File file) throws FileNotFoundException {
-        inputStream = new FileInputStream(file);
-        outputStream = new FileOutputStream(file);
+    public Quarry(InputStream inputStream){
+        this.inputStream = inputStream;
+    }
+    
+    public Quarry(OutputStream outputStream){
+        this.outputStream = outputStream;
     }
     
     public void write(Seriable seriable){
-        seriable.write(this);
+        if(outputStream!=null){
+            seriable.write(this);
+        }
     }
     
     public <T extends Seriable> T read(Class<T> c){
-        try {
-            T type = c.newInstance();
-            type.read(this);
-            return type;
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        if(inputStream!=null){
+            try {
+                T type = c.newInstance();
+                type.read(this);
+                return type;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         return null;
     }
     
     public void writeInt(int value){
-        try {
-            outputStream.write(new byte[]{
-                (byte)(0xff & (value >> 24)),
-                (byte)(0xff & (value >> 16)),
-                (byte)(0xff & (value >>  8)),
-                (byte)(0xff & value)
-            });
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(outputStream!=null){
+            try {
+                outputStream.write(new byte[]{
+                    (byte)(0xff & (value >> 24)),
+                    (byte)(0xff & (value >> 16)),
+                    (byte)(0xff & (value >>  8)),
+                    (byte)(0xff & value)
+                });
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
     
     public void writeLong(long value){
-        try {
-            outputStream.write(new byte[]{
-                (byte)(0xff & (value >> 56)),
-                (byte)(0xff & (value >> 48)),
-                (byte)(0xff & (value >> 40)),
-                (byte)(0xff & (value >> 32)),
-                (byte)(0xff & (value >> 24)),
-                (byte)(0xff & (value >> 16)),
-                (byte)(0xff & (value >>  8)),
-                (byte)(0xff & value)
-            });
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(outputStream!=null){
+            try {
+                outputStream.write(new byte[]{
+                    (byte)(0xff & (value >> 56)),
+                    (byte)(0xff & (value >> 48)),
+                    (byte)(0xff & (value >> 40)),
+                    (byte)(0xff & (value >> 32)),
+                    (byte)(0xff & (value >> 24)),
+                    (byte)(0xff & (value >> 16)),
+                    (byte)(0xff & (value >>  8)),
+                    (byte)(0xff & value)
+                });
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
     
     public void writeShort(short value){
-        try {
-            outputStream.write(new byte[]{
-                (byte)(0xff & (value >>  8)),
-                (byte)(0xff & value)
-            });
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(outputStream!=null){
+            try {
+                outputStream.write(new byte[]{
+                    (byte)(0xff & (value >>  8)),
+                    (byte)(0xff & value)
+                });
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
     
     public void writeByte(byte value){
-        try {
-            outputStream.write(value);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(outputStream!=null){
+            try {
+                outputStream.write(value);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
     
     public void writeFloat(float value){
-        writeInt(Float.floatToIntBits(value));
+        if(outputStream!=null){
+            writeInt(Float.floatToIntBits(value));
+        }
     }
     
     public void writeDouble(double value){
-        writeLong(Double.doubleToLongBits(value));
+        if(outputStream!=null){
+            writeLong(Double.doubleToLongBits(value));
+        }
     }
     
     public void writeString(String value){
-        try {
-            writeInt(value.length());
-            outputStream.write(value.getBytes());
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(outputStream!=null){
+            try {
+                writeInt(value.length());
+                outputStream.write(value.getBytes());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
     }
     
     public byte readByte(){
-        try {
-            return (byte)inputStream.read();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(inputStream!=null){
+            try {
+                return (byte)inputStream.read();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
         return 0;
     }
     
     public int readInt(){
-        return (readByte() << 24) |
-               (readByte() << 16) | 
-               (readByte() <<  8) | 
-                readByte();
+        if(inputStream!=null){
+            return (readByte() << 24) |
+                   (readByte() << 16) | 
+                   (readByte() <<  8) | 
+                    readByte();
+        }else{
+            return 0;
+        }
     }
     
     public long readLong(){
-        return (readByte() << 56) | 
-               (readByte() << 48) | 
-               (readByte() << 40) | 
-               (readByte() << 32) | 
-               (readByte() << 24) | 
-               (readByte() << 16) | 
-               (readByte() <<  8) | 
-                readByte();
+        if(inputStream!=null){
+            return (readByte() << 56) | 
+                   (readByte() << 48) | 
+                   (readByte() << 40) | 
+                   (readByte() << 32) | 
+                   (readByte() << 24) | 
+                   (readByte() << 16) | 
+                   (readByte() <<  8) | 
+                    readByte();
+        }else{
+            return 0;
+        }
     }
     
     public short readShort(){
-        return (short)((readByte() <<  8) | 
-                        readByte());
+        if(inputStream!=null){
+            return (short)((readByte() <<  8) | 
+                            readByte());
+        }else{
+            return 0;
+        }
     }
     
     public float readFloat(){
-        return Float.intBitsToFloat(readInt());
+        if(inputStream!=null){
+            return Float.intBitsToFloat(readInt());
+        }else{
+            return 0;
+        }
     }
     
     public double readDouble(){
-        return Double.longBitsToDouble(readLong());
+        if(inputStream!=null){
+            return Double.longBitsToDouble(readLong());
+        }else{
+            return 0;
+        }
     }
     
     public String readString(){
-        try {
-            byte[] buffer = new byte[readInt()];
-            inputStream.read(buffer);
-            return new String(buffer);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if(inputStream!=null){
+            try {
+                byte[] buffer = new byte[readInt()];
+                inputStream.read(buffer);
+                return new String(buffer);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return null;
+            }
+        }else{
             return null;
         }
     }

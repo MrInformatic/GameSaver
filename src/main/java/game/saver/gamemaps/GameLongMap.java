@@ -1,7 +1,25 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016 MrInformatic.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 package game.saver.gamemaps;
 
@@ -9,8 +27,10 @@ import game.saver.ClassMap;
 import game.saver.GameData;
 import game.saver.GameGraph;
 import game.saver.Quarry;
-import game.saver.interfaces.Flushable;
+import game.saver.interfaces.Writeable;
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,33 +40,30 @@ import java.util.Set;
  *
  * @author MrInformatic
  */
-public class GameLongMap<T extends GameData> implements Map<Long,T>,Flushable{
+public class GameLongMap<T extends GameData> implements Map<Long,T>,Writeable{
     private HashMap<Long,T> values = new HashMap<>();
     private GameGraph graph;
-    private ClassMap classMap;
-    private File file;
     
-    public GameLongMap(GameGraph graph,ClassMap classMap,File file){
+    public GameLongMap(GameGraph graph,InputStream stream){
         super();
-        this.file = file;
-        this.classMap = classMap;
         this.graph = graph;
-        if(file.exists()){
-            try {
-                Quarry quarry = new Quarry(file);
+        try {
+            if(stream.available()>0){
+                Quarry quarry = new Quarry(stream);
                 int lenght = quarry.readInt();
                 for(int i=0;i<lenght;i++){
                     values.put(quarry.readLong(),(T)graph.get(quarry.readInt()));
                 }
-            } catch (Exception ex) {
+            }
+        } catch (Exception ex) {
 
-            }   
         }
     }
     
-    public void flush(){
+    @Override
+    public void write(OutputStream stream){
         try {
-            Quarry quarry = new Quarry(file);
+            Quarry quarry = new Quarry(stream);
             quarry.writeInt(values.size());
             for(Map.Entry<Long,T> value : values.entrySet()){
                 quarry.writeLong(value.getKey());

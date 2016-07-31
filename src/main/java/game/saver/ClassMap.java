@@ -23,11 +23,14 @@
  */
 package game.saver;
 
-import game.saver.interfaces.Flushable;
+import game.saver.interfaces.Seriable;
+import game.saver.interfaces.Writeable;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,38 +41,12 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class ClassMap implements Flushable{
+public class ClassMap implements Seriable{
     private int nextid = 0;
     private HashMap<Integer,Class> idtoclass = new HashMap<>();
     private HashMap<Class,Integer> classtoid = new HashMap<>();
-    private File file;
     
-    public ClassMap(File file){
-        this.file = file;
-        RandomAccessFile quarry = null;
-        if(file.exists()){
-            try {
-                quarry = new RandomAccessFile(file, "rw");
-                nextid = quarry.readInt();
-                int length = quarry.readInt();
-                for(int i=0;i<length;i++){
-                    int id = quarry.readInt();
-                    byte[] buffer = new byte[quarry.readInt()];
-                    quarry.read(buffer);
-                    Class c = Class.forName(new String(buffer));
-                    idtoclass.put(id,c);
-                    classtoid.put(c,id);
-                }
-            } catch (Exception ex) {
-                if(quarry!=null){
-                    try {
-                        quarry.close();
-                    } catch (IOException ex1) {
-                        ex1.printStackTrace();
-                    }
-                }
-            }
-        }
+    public ClassMap(){
     }
     
     public int getClassId(Class c){
@@ -86,20 +63,34 @@ public class ClassMap implements Flushable{
     }
     
     @Override
-    public void flush(){
+    public void write(Quarry quarry){
         try {
-            RandomAccessFile quarry = new RandomAccessFile(file, "rw");
-            quarry.setLength(0);
             quarry.writeInt(nextid);
             quarry.writeInt(idtoclass.size());
             int i=0;
             for(Map.Entry<Integer,Class> classes : idtoclass.entrySet()){
                 quarry.writeInt(classes.getKey());
-                quarry.writeInt(classes.getValue().getName().length());
-                quarry.write(classes.getValue().getName().getBytes());
+                quarry.writeString(classes.getValue().getName());
             }
             quarry.close();
         } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public void read(Quarry quarry) {
+        try {
+            nextid = quarry.readInt();
+            int length = quarry.readInt();
+            for(int i=0;i<length;i++){
+                int id = quarry.readInt();
+                Class c = Class.forName(quarry.readString());
+                idtoclass.put(id,c);
+                classtoid.put(c,id);
+            }
+            quarry.close();
+        }catch(Exception ex){
             ex.printStackTrace();
         }
     }

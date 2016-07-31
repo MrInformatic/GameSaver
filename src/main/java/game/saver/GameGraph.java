@@ -23,13 +23,16 @@
  */
 package game.saver;
 
-import game.saver.interfaces.Flushable;
 import game.saver.interfaces.Graphable;
 import game.saver.interfaces.Seriable;
 import game.saver.GameData;
+import game.saver.interfaces.Writeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,19 +47,18 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class GameGraph implements Graphable<GameData>,Flushable{
+public class GameGraph implements Graphable<GameData>,Writeable{
     private HashMap<Integer,GameData> gameData = new HashMap<>();
     private GameData[] gameDataArray;
     private ClassMap classMap;
-    private File file;
     private IdDispenser idDispenser = new IdDispenser();
 
-    public GameGraph(File file,ClassMap classMap) {
-        this.file = file;
-        this.classMap = classMap;
-        if(file.exists()){
-            try {
-                Quarry quarry = new Quarry(file);
+    public GameGraph(InputStream stream) {
+        try {
+            if(stream.available()>0){
+                Quarry quarry = new Quarry(stream);
+                classMap = new ClassMap();
+                classMap.read(quarry);
                 idDispenser.read(quarry);
                 int length = quarry.readInt();
                 gameDataArray = new GameData[idDispenser.getlargestId()];
@@ -75,9 +77,9 @@ public class GameGraph implements Graphable<GameData>,Flushable{
                     }
                 }
                 quarry.close();
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
     
@@ -123,17 +125,29 @@ public class GameGraph implements Graphable<GameData>,Flushable{
     }
     
     @Override
-    public void flush(){
+    public void write(OutputStream stream){
         try {
-            file.delete();
-            Quarry quarry = new Quarry(file);
-            idDispenser.write(quarry);
-            quarry.writeInt(gameData.size()+gameDataArray.length);
+            Quarry quarry = new Quarry(stream);
+            classMap = new ClassMap();
+            int[] classids = new int[idDispenser.getlargestId()];
             int i=0;
             for(GameData gameData1 : gameDataArray){
                 if(gameData1!=null){
+                    classids[i] = classMap.getClassId(gameData1.getClass());
+                }
+                i++;
+            }
+            for(Map.Entry<Integer,GameData> gameData1 : gameData.entrySet()){
+                classids[gameData1.getKey()] = classMap.getClassId(gameData1.getValue().getClass());
+            }
+            classMap.write(quarry);
+            idDispenser.write(quarry);
+            quarry.writeInt(gameData.size()+gameDataArray.length);
+            i=0;
+            for(GameData gameData1 : gameDataArray){
+                if(gameData1!=null){
                     quarry.writeInt(i);
-                    quarry.writeInt(classMap.getClassId(gameData1.getClass()));
+                    quarry.writeInt(classids[i]);
                     gameData1.write(quarry);
                 }
                 i++;
@@ -141,7 +155,7 @@ public class GameGraph implements Graphable<GameData>,Flushable{
             for(Map.Entry<Integer,GameData> gameData1 : gameData.entrySet()){
                 if(gameData1!=null){
                     quarry.writeInt(gameData1.getKey());
-                    quarry.writeInt(classMap.getClassId(gameData1.getValue().getClass()));
+                    quarry.writeInt(classids[gameData1.getKey()]);
                     gameData1.getValue().write(quarry);
                 }
             }
