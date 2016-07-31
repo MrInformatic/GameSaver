@@ -32,7 +32,7 @@ public class GameByteMap<T extends GameData> implements Map<Byte,T>,Flushable{
         this.classMap = classMap;
         this.graph = graph;
         try {
-            Quarry quarry = new Quarry(file, "rw");
+            Quarry quarry = new Quarry(file);
             int lenght = quarry.readInt();
             for(int i=0;i<lenght;i++){
                 values.put(quarry.readByte(),(T)graph.get(quarry.readInt()));
@@ -44,7 +44,7 @@ public class GameByteMap<T extends GameData> implements Map<Byte,T>,Flushable{
     
     public void flush(){
         try {
-            Quarry quarry = new Quarry(file, "rw");
+            Quarry quarry = new Quarry(file);
             quarry.writeInt(values.size());
             for(Map.Entry<Byte,T> value : values.entrySet()){
                 quarry.writeByte(value.getKey());

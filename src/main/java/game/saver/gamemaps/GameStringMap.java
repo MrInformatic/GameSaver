@@ -33,12 +33,10 @@ public class GameStringMap<T extends GameData> implements Map<String,T>,Flushabl
         this.graph = graph;
         if(file.exists()){
             try {
-                Quarry quarry = new Quarry(file, "rw");
+                Quarry quarry = new Quarry(file);
                 int lenght = quarry.readInt();
                 for(int i=0;i<lenght;i++){
-                    byte[] buffer = new byte[quarry.readInt()];
-                    quarry.read(buffer);
-                    values.put(new String(buffer),(T)graph.get(quarry.readInt()));
+                    values.put(quarry.readString(),(T)graph.get(quarry.readInt()));
                 }
             } catch (Exception ex) {
 
@@ -48,11 +46,10 @@ public class GameStringMap<T extends GameData> implements Map<String,T>,Flushabl
     
     public void flush(){
         try {
-            Quarry quarry = new Quarry(file, "rw");
+            Quarry quarry = new Quarry(file);
             quarry.writeInt(values.size());
             for(Map.Entry<String,T> value : values.entrySet()){
-                quarry.writeInt(value.getKey().length());
-                quarry.write(value.getKey().getBytes());
+                quarry.writeString(value.getKey());
                 quarry.writeInt(value.getValue().getId());
             }
         } catch (Exception ex) {

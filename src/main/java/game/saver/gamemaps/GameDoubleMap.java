@@ -33,7 +33,7 @@ public class GameDoubleMap<T extends GameData> implements Map<Double,T>,Flushabl
         this.graph = graph;
         if(file.exists()){
             try {
-                Quarry quarry = new Quarry(file, "rw");
+                Quarry quarry = new Quarry(file);
                 int lenght = quarry.readInt();
                 for(int i=0;i<lenght;i++){
                     values.put(quarry.readDouble(),(T)graph.get(quarry.readInt()));
@@ -46,7 +46,7 @@ public class GameDoubleMap<T extends GameData> implements Map<Double,T>,Flushabl
     
     public void flush(){
         try {
-            Quarry quarry = new Quarry(file, "rw");
+            Quarry quarry = new Quarry(file);
             quarry.writeInt(values.size());
             for(Map.Entry<Double,T> value : values.entrySet()){
                 quarry.writeDouble(value.getKey());

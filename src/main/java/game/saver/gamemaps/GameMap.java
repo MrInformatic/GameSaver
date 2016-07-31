@@ -56,7 +56,7 @@ public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>,
         this.graph = graph;
         if(file.exists()){
             try {
-                Quarry quarry = new Quarry(file, "rw");
+                Quarry quarry = new Quarry(file);
                 int length = quarry.readInt();
                 for(int i=0;i<length;i++){
                     K key = c.newInstance();
@@ -72,7 +72,7 @@ public class GameMap<K extends Seriable,T extends GameData> implements Map<K,T>,
     @Override
     public void flush(){
         try {
-            Quarry quarry = new Quarry(file, "rw");
+            Quarry quarry = new Quarry(file);
             quarry.writeInt(values.size());
             for(Map.Entry<K,T> value : values.entrySet()){
                 value.getKey().write(quarry);

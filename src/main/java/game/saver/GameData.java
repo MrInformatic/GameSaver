@@ -59,46 +59,28 @@ public abstract class GameData implements Seriable{
         this.id = id;
     }
     
-    public boolean readChilds(RandomAccessFile quarry,GameData[] data){
-        try {
-            int length = quarry.readInt();
-            if(length==-1){
-                return true;
-            }else{
-                childs = new ArrayList<>(length);
-                for(int i=0;i<length;i++){
-                    childs.add(data[quarry.readInt()]);
-                }
-                return false;
+    public boolean readChilds(Quarry quarry,GameData[] data){
+        int length = quarry.readInt();
+        if(length==-1){
+            return true;
+        }else{
+            childs = new ArrayList<>(length);
+            for(int i=0;i<length;i++){
+                childs.add(data[quarry.readInt()]);
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            return false;
         }
-        return false;
     }
     
-    public void writeChilds(RandomAccessFile quarry){
+    public void writeChilds(Quarry quarry){
         if(!childs.isEmpty()){
-            try {
-                quarry.writeInt(this.getId());
-                quarry.writeInt(this.childs.size());
-                for(GameData child : childs){
-                    quarry.writeInt(child.getId());
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            quarry.writeInt(this.getId());
+            quarry.writeInt(this.childs.size());
+            for(GameData child : childs){
+                quarry.writeInt(child.getId());
             }
         }
     }
-    
-    /*public void setChilds(ArrayList<GameData> childs){
-        this.childs = childs;
-        setChilds(childs.toArray(new GameData[childs.size()]));
-    }
-    
-    public ArrayList<GameData> getChilds(){
-        return childs;
-    }*/
     
     public abstract void setChilds(ArrayList<GameData> childs);
     

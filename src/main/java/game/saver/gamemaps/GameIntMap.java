@@ -33,7 +33,7 @@ public class GameIntMap<T extends GameData> implements Map<Integer,T>,Flushable{
         this.graph = graph;
         if(file.exists()){
             try {
-                Quarry quarry = new Quarry(file, "rw");
+                Quarry quarry = new Quarry(file);
                 int lenght = quarry.readInt();
                 for(int i=0;i<lenght;i++){
                     values.put(quarry.readInt(),(T)graph.get(quarry.readInt()));
@@ -46,7 +46,7 @@ public class GameIntMap<T extends GameData> implements Map<Integer,T>,Flushable{
     
     public void flush(){
         try {
-            Quarry quarry = new Quarry(file, "rw");
+            Quarry quarry = new Quarry(file);
             quarry.writeInt(values.size());
             for(Map.Entry<Integer,T> value : values.entrySet()){
                 quarry.writeInt(value.getKey());

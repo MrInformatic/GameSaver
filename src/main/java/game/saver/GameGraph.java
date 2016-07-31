@@ -56,7 +56,7 @@ public class GameGraph implements Graphable<GameData>,Flushable{
         this.classMap = classMap;
         if(file.exists()){
             try {
-                Quarry quarry = new Quarry(file, "rw");
+                Quarry quarry = new Quarry(file);
                 idDispenser.read(quarry);
                 int length = quarry.readInt();
                 gameDataArray = new GameData[idDispenser.getlargestId()];
@@ -125,8 +125,8 @@ public class GameGraph implements Graphable<GameData>,Flushable{
     @Override
     public void flush(){
         try {
-            Quarry quarry = new Quarry(file, "rw");
-            quarry.setLength(0);
+            file.delete();
+            Quarry quarry = new Quarry(file);
             idDispenser.write(quarry);
             quarry.writeInt(gameData.size()+gameDataArray.length);
             int i=0;
@@ -186,27 +186,19 @@ public class GameGraph implements Graphable<GameData>,Flushable{
 
         @Override
         public void write(Quarry quarry) {
-            try {
-                quarry.writeInt(nextId);
-                quarry.writeInt(ids.size());
-                for(Integer i : ids){
-                    quarry.writeInt(i);
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            quarry.writeInt(nextId);
+            quarry.writeInt(ids.size());
+            for(Integer i : ids){
+                quarry.writeInt(i);
             }
         }
 
         @Override
         public void read(Quarry quarry) {
-            try {
-                nextId = quarry.readInt();
-                int length = quarry.readInt();
-                for(int i=0;i<length;i++){
-                    ids.add(quarry.readInt());
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            nextId = quarry.readInt();
+            int length = quarry.readInt();
+            for(int i=0;i<length;i++){
+                ids.add(quarry.readInt());
             }
         }
     }
