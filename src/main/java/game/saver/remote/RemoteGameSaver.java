@@ -21,21 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package game.saver;
+package game.saver.remote;
 
+import game.saver.GameData;
+import game.saver.GameGraph;
+import game.saver.GameSaver;
+import game.saver.Quarry;
 import game.saver.gamemaps.GameByteMap;
 import game.saver.gamemaps.GameDoubleMap;
 import game.saver.gamemaps.GameFloatMap;
 import game.saver.gamemaps.GameIntMap;
 import game.saver.gamemaps.GameLongMap;
-import game.saver.interfaces.Seriable;
-import game.saver.gamemaps.GameStringMap;
 import game.saver.gamemaps.GameMap;
 import game.saver.gamemaps.GameShortMap;
-import java.io.File;
+import game.saver.gamemaps.GameStringMap;
+import game.saver.interfaces.Seriable;
+import game.saver.remote.gamemaps.RemoteGameByteMap;
+import game.saver.remote.gamemaps.RemoteGameDoubleMap;
+import game.saver.remote.gamemaps.RemoteGameFloatMap;
+import game.saver.remote.gamemaps.RemoteGameIntMap;
+import game.saver.remote.gamemaps.RemoteGameLongMap;
+import game.saver.remote.gamemaps.RemoteGameMap;
+import game.saver.remote.gamemaps.RemoteGameShortMap;
+import game.saver.remote.gamemaps.RemoteGameStringMap;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -43,91 +53,104 @@ import java.util.Map;
  *
  * @author MrInformatic
  */
-public class GameSaver implements Seriable{
-    protected GameGraph graph;
-    protected LinkedList<Seriable> gameMaps = new LinkedList<>();
+public class RemoteGameSaver extends GameSaver implements Remoteable,Seriable{
+    private RemoteClassMap remoteClassMap;
+    private LinkedList<Remoteable> remotegameMaps = new LinkedList<>();
     private Quarry quarry;
     
-    public GameSaver(){
-        graph = new GameGraph();
+    public RemoteGameSaver(Quarry quarry){
+        this.quarry = quarry;
+        remoteClassMap = new RemoteClassMap(quarry);
     }
     
+    @Override
     public <K extends Seriable,T extends GameData> Map<K,T> getnewGameMap(Class<K> k,Class<T> t){
-        GameMap<K,T> gameMap = new GameMap();
+        RemoteGameMap<K,T> gameMap = new RemoteGameMap<>(quarry,remoteClassMap);
         gameMap.setKeyClass(k);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<String,T> getnewGameStringMap(Class<T> t){
-        GameStringMap<T> gameMap = new GameStringMap();
+        RemoteGameStringMap<T> gameMap = new RemoteGameStringMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<Integer,T> getnewGameIntMap(Class<T> t){
-        GameIntMap<T> gameMap = new GameIntMap();
+        RemoteGameIntMap<T> gameMap = new RemoteGameIntMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<Byte,T> getnewGameByteMap(Class<T> t){
-        GameByteMap<T> gameMap = new GameByteMap();
+        RemoteGameByteMap<T> gameMap = new RemoteGameByteMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<Short,T> getnewGameShortMap(Class<T> t){
-        GameShortMap<T> gameMap = new GameShortMap();
+        RemoteGameShortMap<T> gameMap = new RemoteGameShortMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<Long,T> getnewGameLongMap(Class<T> t){
-        GameLongMap<T> gameMap = new GameLongMap();
+        RemoteGameLongMap<T> gameMap = new RemoteGameLongMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<Float,T> getnewGameFloatMap(Class<T> t){
-        GameFloatMap<T> gameMap = new GameFloatMap();
+        RemoteGameFloatMap<T> gameMap = new RemoteGameFloatMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
     
+    @Override
     public <T extends GameData> Map<Double,T> getnewGameDoubleMap(Class<T> t){
-        GameDoubleMap<T> gameMap = new GameDoubleMap();
+        RemoteGameDoubleMap<T> gameMap = new RemoteGameDoubleMap<>(quarry,remoteClassMap);
         gameMap.setGameGraph(graph);
         gameMap.read(quarry);
         gameMaps.add(gameMap);
+        remotegameMaps.add(gameMap);
         return gameMap;
     }
-    
+
     @Override
-    public void write(Quarry quarry){
-        graph.write(quarry);
-        for(Seriable gameMap : gameMaps){
-            gameMap.write(quarry);
+    public void update() {
+        int id = quarry.readInt();
+        if(id==0){
+            remoteClassMap.update();
+        }else{
+            remotegameMaps.get(id-1).update();
         }
-    }
-    
-    @Override
-    public void read(Quarry quarry){
-        this.quarry = quarry;
-        graph.read(quarry);
     }
 }

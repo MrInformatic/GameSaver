@@ -21,17 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package game.saver;
+package game.saver.remote;
 
-import game.saver.interfaces.Seriable;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
+import game.saver.ClassMap;
+import game.saver.Quarry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,65 +36,50 @@ import java.util.logging.Logger;
  *
  * @author MrInformatic
  */
-public class ClassMap implements Seriable{
-    protected int nextid = 0;
-    protected HashMap<Integer,Class> idtoclass = new HashMap<>();
-    protected HashMap<Class,Integer> classtoid = new HashMap<>();
+public class RemoteClassMap extends ClassMap implements Remoteable{
+    private Quarry quarry;
     
-    public ClassMap(){
+    public RemoteClassMap(Quarry quarry){
+        this.quarry = quarry;
     }
     
+    @Override
     public void addClass(Class c){
         if(!classtoid.containsKey(c)){
+            if(quarry.writeable()){
+                quarry.writeInt(0);
+                quarry.writeInt(nextid);
+                quarry.writeString(c.getName());
+            }
             classtoid.put(c,nextid);
             idtoclass.put(nextid,c);
             nextid++;
         }
     }
     
-    public int getClassId(Class c){
-        return classtoid.get(c);
-    }
-    
-    public Class getClassbyId(int id){
-        return idtoclass.get(id);
-    }
-    
-    public void clear(){
-        classtoid.clear();
-        idtoclass.clear();
-        nextid = 0;
-    }
-    
     @Override
-    public void write(Quarry quarry){
-        try {
-            quarry.writeInt(nextid);
-            quarry.writeInt(idtoclass.size());
-            int i=0;
-            for(Map.Entry<Integer,Class> classes : idtoclass.entrySet()){
-                quarry.writeInt(classes.getKey());
-                quarry.writeString(classes.getValue().getName());
-            }
-            quarry.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+    public void clear(){
+        super.clear();
+        if(quarry.writeable()){
+            quarry.writeInt(0);
+            quarry.writeInt(-1);
         }
     }
-
+    
     @Override
-    public void read(Quarry quarry) {
+    public void update(){
         try {
-            nextid = quarry.readInt();
-            int length = quarry.readInt();
-            for(int i=0;i<length;i++){
+            if(quarry.readable()){
                 int id = quarry.readInt();
-                Class c = Class.forName(quarry.readString());
-                idtoclass.put(id,c);
-                classtoid.put(c,id);
+                if(id==-1){
+                    clear();
+                }else{
+                    Class c = Class.forName(quarry.readString());
+                    idtoclass.put(id, c);
+                    classtoid.put(c, id);
+                }
             }
-            quarry.close();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }

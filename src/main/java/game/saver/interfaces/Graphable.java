@@ -23,6 +23,8 @@
  */
 package game.saver.interfaces;
 
+import game.saver.GameData;
+
 /**
  *
  * @author MrInformatic
@@ -33,4 +35,6 @@ public interface Graphable<T> {
     public T get(int i);
     
     public void remove(int i);
+    
+    public void set(int i,T type);
 }

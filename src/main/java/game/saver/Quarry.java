@@ -241,4 +241,12 @@ public class Quarry{
             Logger.getLogger(Quarry.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public boolean writeable(){
+        return outputStream!=null;
+    }
+    
+    public boolean readable(){
+        return inputStream!=null;
+    }
 }

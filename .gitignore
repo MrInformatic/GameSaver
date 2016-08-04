@@ -14,3 +14,4 @@ hs_err_pid*
 #maven
 target/
 /nbproject/private/
+nb-configuration.xml

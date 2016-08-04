@@ -27,7 +27,7 @@ import game.saver.ClassMap;
 import game.saver.GameData;
 import game.saver.GameGraph;
 import game.saver.Quarry;
-import game.saver.interfaces.Writeable;
+import game.saver.interfaces.Seriable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,30 +40,25 @@ import java.util.Set;
  *
  * @author MrInformatic
  */
-public class GameFloatMap<T extends GameData> implements Map<Float,T>,Writeable{
+public class GameFloatMap<T extends GameData> implements Map<Float,T>,Seriable{
     private HashMap<Float,T> values = new HashMap<>();
-    private GameGraph graph;
+    protected GameGraph graph;
     
-    public GameFloatMap(GameGraph graph,InputStream stream){
-        super();
+    public void setGameGraph(GameGraph graph){
         this.graph = graph;
-        try {
-            if(stream.available()>0){
-                Quarry quarry = new Quarry(stream);
-                int lenght = quarry.readInt();
-                for(int i=0;i<lenght;i++){
-                    values.put(quarry.readFloat(),(T)graph.get(quarry.readInt()));
-                }
-            }
-        } catch (Exception ex) {
-
+    }
+    
+    @Override
+    public void read(Quarry quarry){
+        int lenght = quarry.readInt();
+        for(int i=0;i<lenght;i++){
+            values.put(quarry.readFloat(),(T)graph.get(quarry.readInt()));
         }
     }
     
     @Override
-    public void write(OutputStream stream){
+    public void write(Quarry quarry){
         try {
-            Quarry quarry = new Quarry(stream);
             quarry.writeInt(values.size());
             for(Map.Entry<Float,T> value : values.entrySet()){
                 quarry.writeFloat(value.getKey());

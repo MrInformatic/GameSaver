@@ -21,14 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package game.saver.interfaces;
+package game.saver.remote;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
  *
  * @author MrInformatic
  */
-public interface Writeable {
-    public void write(OutputStream stream);
+public interface Remoteable { 
+    public void update();
 }
